@@ -1,0 +1,196 @@
+package com.ideateca.core.util;
+
+import java.util.HashMap;
+
+import android.content.Context;
+import android.media.AudioManager;
+import android.media.SoundPool;
+import android.media.SoundPool.OnLoadCompleteListener;
+import android.os.Handler;
+
+import com.ideateca.core.util.Log.LogLevel;
+
+/**
+ * This code is based on the CocosDenshion implementation.
+ * 
+ * @author ijamardo
+ *
+ */
+public class Sound
+{
+	public static String LOG_TAG = "IDTKLog";
+	
+	private Context mContext;
+	private SoundPool mSoundPool;
+	private float mLeftVolume;
+	private float mRightVolume;
+	private boolean initialized = false;
+
+	// sound id and stream id map
+	private HashMap<Integer, Integer> mSoundIdStreamIdMap;
+	// sound path and sound id map
+	private HashMap<String, Integer> mPathSoundIDMap;
+	
+	private static final int MAX_SIMULTANEOUS_STREAMS_DEFAULT = 10;
+	private static final float SOUND_RATE = 1.0f;
+	private static final int SOUND_PRIORITY = 1;
+	private static final int SOUND_QUALITY = 0;
+
+	private final int INVALID_SOUND_ID = -1;
+	private final int INVALID_STREAM_ID = -1;
+	
+	private Handler handler = new Handler();
+
+	public void init(Context context)
+	{
+		if (initialized) throw new IllegalStateException("Trying to initialize an already initialized " + getClass().getName() + " instance.");
+		if (context == null) throw new NullPointerException("The given context cannot be null.");
+		this.mContext = context;
+		initData();
+		initialized = true;
+	}
+	
+	public void end()
+	{
+		if (!initialized) throw new IllegalStateException("Trying to end a non initialized " + getClass().getName() + " instance.");
+		this.mSoundPool.release();
+		this.mPathSoundIDMap.clear();
+		this.mSoundIdStreamIdMap.clear();
+		mContext = null;
+		initialized = false;
+	}
+	
+	public boolean isInitialized()
+	{
+		return initialized;
+	}
+
+	public void setContext(Context context)
+	{
+		if (!initialized) throw new IllegalStateException("The instance has not been initialized yet.");
+		if (context == null) throw new NullPointerException("The given context cannot be null.");
+		this.mContext = context;
+	}
+	
+	public int preloadSound(String path)
+	{
+		if (!initialized) throw new IllegalStateException("The instance has not been initialized yet.");
+		
+		int soundId = INVALID_SOUND_ID;
+
+		// if the sound is preloaded, pass it
+		if (this.mPathSoundIDMap.get(path) != null)
+		{
+			soundId = this.mPathSoundIDMap.get(path).intValue();
+		}
+		else
+		{
+			soundId = createSoundIdFromAsset(path);
+
+			if (soundId != INVALID_SOUND_ID)
+			{
+				// the sound is loaded but has not been played
+				this.mSoundIdStreamIdMap.put(soundId, INVALID_STREAM_ID);
+
+				// record path and sound id map
+				this.mPathSoundIDMap.put(path, soundId);
+			}
+		}
+
+		return soundId;
+	}
+
+	public void unloadSound(String path)
+	{
+		if (!initialized) throw new IllegalStateException("The instance has not been initialized yet.");
+		
+		// get sound id and remove from mPathSoundIDMap
+		Integer soundId = this.mPathSoundIDMap.remove(path);
+
+		if (soundId != null)
+		{
+			// unload effect
+			this.mSoundPool.unload(soundId.intValue());
+
+			// remove record from mSoundIdStreamIdMap
+			this.mSoundIdStreamIdMap.remove(soundId);
+		}
+	}
+
+	public int playSound(final String path, final boolean isLoop)
+	{
+		if (!initialized) throw new IllegalStateException("The instance has not been initialized yet.");
+		
+		final int soundId = preloadSound(path);
+		
+		if (soundId == INVALID_SOUND_ID) {
+			return INVALID_SOUND_ID;
+		
+		} else {
+			mSoundPool.play(soundId, mLeftVolume, mRightVolume, SOUND_PRIORITY, isLoop ? -1 : 0, SOUND_RATE);
+		}
+
+		return soundId;
+	}
+
+	public void stopSound(int soundId)
+	{
+		if (!initialized) throw new IllegalStateException("The instance has not been initialized yet.");
+		
+		Integer streamId = this.mSoundIdStreamIdMap.get(soundId);
+
+		if (streamId != null && streamId.intValue() != INVALID_STREAM_ID)
+		{
+			this.mSoundPool.stop(streamId.intValue());
+		}
+	}
+
+	public float getSoundsVolume()
+	{
+		if (!initialized) throw new IllegalStateException("The instance has not been initialized yet.");
+		
+		return (this.mLeftVolume + this.mRightVolume) / 2;
+	}
+
+	public void setSoundsVolume(float volume)
+	{
+		if (!initialized) throw new IllegalStateException("The instance has not been initialized yet.");
+		
+		this.mLeftVolume = this.mRightVolume = volume;
+	}
+
+	private int createSoundIdFromAsset(String path)
+	{
+		if (!initialized) throw new IllegalStateException("The instance has not been initialized yet.");
+		
+		int soundId = INVALID_SOUND_ID;
+
+		try
+		{
+			soundId = mSoundPool.load(mContext.getAssets().openFd(path), 1);
+		}
+		catch (Exception e)
+		{
+			try
+			{
+				soundId = mSoundPool.load(path, 1);
+			}
+			catch (Exception ex)
+			{
+				Log.log(LogLevel.IDTK_LOG_ERROR, "error: " + e.getMessage());
+			}
+		}
+
+		return soundId;
+	}
+
+	private void initData()
+	{
+		this.mSoundIdStreamIdMap = new HashMap<Integer, Integer>();
+		mSoundPool = new SoundPool(MAX_SIMULTANEOUS_STREAMS_DEFAULT, AudioManager.STREAM_MUSIC, SOUND_QUALITY);
+		mPathSoundIDMap = new HashMap<String, Integer>();
+
+		this.mLeftVolume = 1.0f;
+		this.mRightVolume = 1.0f;
+	}
+}

@@ -1,0 +1,467 @@
+package com.ideateca.core.util;
+
+import java.util.ArrayList;
+
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Build;
+
+/**
+ * Android Orientation Sensor Manager Archetype
+ * 
+ * @author antoine vianey under GPL v3 :
+ *         http://www.gnu.org/licenses/gpl-3.0.html
+ */
+public class RotationManager extends ActivityAdapter
+{
+	private static final boolean USE_ORIENTATION = false;
+
+	private SensorManager sensorManager;
+
+	private ArrayList<RotationListener> rotationListeners = new ArrayList<RotationListener>();
+
+	private Boolean supported;
+	/** indicates whether or not Orientation Sensor is supported */
+	private boolean running = false;
+	/** indicates whether or not Orientation Sensor is running */
+	private Context context = null;
+	private boolean initialized = false;
+
+	int numMagenticFieldSensors = 0;
+	int numAccelerometerSensors = 0;
+	int numRotationSensors = 0;
+	int numOrientationSensors = 0;
+
+	private float grav[] = new float[3];
+	private float mag[] = new float[3];
+	private float rot[] = new float[3];
+	private float[] mOrientation = new float[3];
+	private float[] mRotationM = new float[9];
+	private float[] mRemapedRotationM = new float[9];
+
+	private double updateIntervalInSeconds = 1.0 / 30.0;
+	private Timer updateTimer = new Timer();
+
+	enum Side
+	{
+		TOP, BOTTOM, LEFT, RIGHT;
+		/** Sides of the phone */
+	}
+
+	private synchronized RotationListener[] toRotationListenerArray()
+	{
+		RotationListener[] array = new RotationListener[rotationListeners.size()];
+		array = rotationListeners.toArray(array);
+		return array;
+	}
+
+	private void notifyRotationChanged(int newOrientation)
+	{
+		RotationListener[] array = toRotationListenerArray();
+		for (RotationListener listener : array)
+			listener.rotationChanged(newOrientation);
+	}
+
+	private void notifyRotationChanged(float pitch, float roll, float azimuth)
+	{
+		RotationListener[] array = toRotationListenerArray();
+		for (RotationListener listener : array)
+			listener.rotationChanged(pitch, roll, azimuth);
+	}
+
+	public synchronized void addRotationListener(RotationListener listener)
+	{
+		if (listener == null)
+			throw new NullPointerException("The given listener cannot be null.");
+
+		if (!rotationListeners.contains(listener))
+			rotationListeners.add(listener);
+	}
+
+	public synchronized void removeRotationListener(RotationListener listener)
+	{
+		rotationListeners.remove(listener);
+	}
+
+	public synchronized void removeAllRotationListeners()
+	{
+		rotationListeners.clear();
+	}
+
+	public void init(Context context)
+	{
+		if (initialized)
+			throw new IllegalStateException(
+					"Trying to initialize an already initialized " + getClass().getName()
+							+ " instance.");
+		if (context == null)
+			throw new NullPointerException("The given context cannot be null.");
+		this.context = context;
+
+		sensorManager = (SensorManager) context
+				.getSystemService(Context.SENSOR_SERVICE);
+
+		numMagenticFieldSensors = sensorManager.getSensorList(
+				Sensor.TYPE_MAGNETIC_FIELD).size();
+		numAccelerometerSensors = sensorManager.getSensorList(
+				Sensor.TYPE_ACCELEROMETER).size();
+		numRotationSensors = sensorManager.getSensorList(
+				Sensor.TYPE_ROTATION_VECTOR).size();
+		numOrientationSensors = sensorManager
+				.getSensorList(Sensor.TYPE_ORIENTATION).size();
+		
+		if (this.context instanceof ActivityNotifier)
+		{
+			ActivityNotifier activityNotifier = (ActivityNotifier)this.context;
+			activityNotifier.addActivityListener(this);
+		}
+		else
+		{
+			System.err.println("The given context is not an instance of ActivityNotifier. Sensors might drain the battery.");
+		}
+
+		initialized = true;
+	}
+
+	public void end()
+	{
+		if (!initialized)
+			throw new IllegalStateException("Trying to end a non initialized "
+					+ getClass().getName() + " instance.");
+		
+		if (this.context instanceof ActivityNotifier)
+		{
+			ActivityNotifier activityNotifier = (ActivityNotifier)this.context;
+			activityNotifier.removeActivityListener(this);
+		}
+		else
+		{
+			System.err.println("The given context is not an instance of ActivityNotifier. Sensors might drain the battery.");
+		}
+
+		context = null;
+		initialized = false;
+	}
+
+  @Override
+  public void onStop() {
+  	super.onStop();
+  	// unregister sensor listeners to prevent the activity from draining the device's battery.
+  	if (initialized)
+  	{
+  		stopListening();
+  	}
+  }
+
+  @Override
+  public void onPause() {
+		super.onPause();
+		// unregister sensor listeners to prevent the activity from draining the device's battery.
+		if (initialized)
+		{
+			stopListening();
+		}
+  }
+  
+  @Override
+  public void onResume() {
+  	super.onResume();
+  	// restore the sensor listeners when user resumes the application.
+  	if (initialized)
+  	{
+  		startListening();
+  	}
+  }
+	
+	public boolean isInitialized()
+	{
+		return initialized;
+	}
+
+	public void setContext(Context context)
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+		if (context == null)
+			throw new NullPointerException("The given context cannot be null.");
+		
+		if (this.context instanceof ActivityNotifier)
+		{
+			ActivityNotifier activityNotifier = (ActivityNotifier)this.context;
+			activityNotifier.removeActivityListener(this);
+		}
+		else
+		{
+			System.err.println("The given context is not an instance of ActivityNotifier. Sensors might drain the battery.");
+		}
+		
+		this.context = context;
+		
+		if (this.context instanceof ActivityNotifier)
+		{
+			ActivityNotifier activityNotifier = (ActivityNotifier)this.context;
+			activityNotifier.addActivityListener(this);
+		}
+		else
+		{
+			System.err.println("The given context is not an instance of ActivityNotifier. Sensors might drain the battery.");
+		}
+	}
+
+	/**
+	 * Returns true if the manager is listening to orientation changes
+	 */
+	public boolean isListening()
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+
+		return running;
+	}
+
+	/**
+	 * Unregisters listeners
+	 */
+	public void stopListening()
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+
+		running = false;
+		try
+		{
+			if (sensorManager != null && sensorEventListener != null)
+				sensorManager.unregisterListener(sensorEventListener);
+		}
+		catch (Exception e)
+		{
+		}
+	}
+
+	/**
+	 * Returns true if at least one Orientation sensor is available
+	 */
+	public boolean isSupported()
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+
+		if (supported == null)
+		{
+			if (context != null)
+			{
+				supported = USE_ORIENTATION ? numOrientationSensors > 0
+						: ((numAccelerometerSensors > 0 && numMagenticFieldSensors > 0) || numRotationSensors > 0);
+			}
+		}
+
+		return supported;
+	}
+
+	/**
+	 * Registers a listener and start listening
+	 */
+	public void startListening()
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+
+		if (USE_ORIENTATION)
+		{
+			sensorManager.registerListener(sensorEventListener,
+					sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+					SensorManager.SENSOR_DELAY_GAME);
+		}
+		else
+		{
+			if (numAccelerometerSensors > 0 && numMagenticFieldSensors > 0)
+			{
+				sensorManager.registerListener(sensorEventListener,
+						sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+						SensorManager.SENSOR_DELAY_GAME);
+
+				sensorManager.registerListener(sensorEventListener,
+						sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+						SensorManager.SENSOR_DELAY_GAME);
+			}
+			else if (numRotationSensors > 0)
+			{
+				sensorManager.registerListener(sensorEventListener,
+						sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
+						SensorManager.SENSOR_DELAY_GAME);
+			}
+		}
+		running = true;
+	}
+
+	public void setUpdateIntervalInSeconds(double updateIntervalInSeconds)
+	{
+		this.updateIntervalInSeconds = updateIntervalInSeconds;
+	}
+
+	public double getUpdateIntervalInSeconds()
+	{
+		return updateIntervalInSeconds;
+	}
+
+	/**
+	 * The listener that listen to events from the orientation listener
+	 */
+	private SensorEventListener sensorEventListener = new SensorEventListener()
+	{
+
+		private float azimuth;
+		private float pitch;
+		private float roll;
+
+		public void onAccuracyChanged(Sensor sensor, int accuracy)
+		{
+		}
+
+		static final float ALPHA = 0.25f;
+
+		protected float[] lowPassFilter(float[] input, float[] output)
+		{
+			if (output == null)
+				return input;
+
+			for (int i = 0; i < input.length; i++)
+			{
+				output[i] = output[i] + ALPHA * (input[i] - output[i]);
+			}
+
+			return output;
+		}
+
+		@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+		public void onSensorChanged(SensorEvent event)
+		{
+			float smooth[] = null;
+			switch (event.sensor.getType())
+			{
+			case Sensor.TYPE_ACCELEROMETER:
+				smooth = lowPassFilter(event.values, grav);
+				grav[0] = smooth[0];
+				grav[1] = smooth[1];
+				grav[2] = smooth[2];
+				break;
+
+			case Sensor.TYPE_MAGNETIC_FIELD:
+				smooth = lowPassFilter(event.values, mag);
+				mag[0] = smooth[0];
+				mag[1] = smooth[1];
+				mag[2] = smooth[2];
+				break;
+
+			case Sensor.TYPE_ROTATION_VECTOR:
+				smooth = lowPassFilter(event.values, rot);
+				rot[0] = smooth[0];
+				rot[1] = smooth[1];
+				rot[2] = smooth[2];
+				break;
+			case Sensor.TYPE_ORIENTATION:
+
+				azimuth = 360 - event.values[0];
+				pitch = event.values[1];
+				roll = -event.values[2];
+
+				// Adjust the range: 0 < range <= 360 (from: -180 < range <= 180).
+				// azimuth = (azimuth + 360) % 360; // alternative: mAzimuth =
+				// mAzimuth>=0 ? mAzimuth : mAzimuth+360;
+
+				notifyRotationChanged(-pitch, roll, azimuth);
+				return;
+
+			default:
+				notifyRotationChanged(0, 0, 0);
+			}
+
+			if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR)
+			{
+				SensorManager.getRotationMatrixFromVector(mRotationM, rot);
+
+			}
+			else
+			{
+				// Get rotation matrix given the gravity and geomagnetic matrices
+				SensorManager.getRotationMatrix(mRotationM, null, grav, mag);
+			}
+
+			/**
+			 * This block remaps the rotation matrix based on the current device
+			 * orientation As we want to behave the same as the browser this code is
+			 * needed no more, is left here just for informative purposes as it is not
+			 * so well documented in the official docs.
+			 */
+			// //Translate the rotation matrices from Y and -X (landscape)
+			// int axisX = SensorManager.AXIS_X;
+			// int axisY = SensorManager.AXIS_Y;
+			// WindowManager windowManager = (WindowManager)
+			// context.getSystemService(Context.WINDOW_SERVICE);
+			// switch (windowManager.getDefaultDisplay().getRotation()) {
+			// case Surface.ROTATION_0:
+			// axisX = SensorManager.AXIS_X;
+			// axisY = SensorManager.AXIS_Y;
+			// break;
+			//
+			// case Surface.ROTATION_90:
+			// axisX = SensorManager.AXIS_Y;
+			// axisY = SensorManager.AXIS_MINUS_X;
+			// break;
+			//
+			// case Surface.ROTATION_180:
+			// axisX = SensorManager.AXIS_MINUS_X;
+			// axisY = SensorManager.AXIS_MINUS_Y;
+			// break;
+			//
+			// case Surface.ROTATION_270:
+			// axisX = SensorManager.AXIS_MINUS_Y;
+			// axisY = SensorManager.AXIS_X;
+			// break;
+			//
+			// default:
+			// break;
+			// }
+			// SensorManager.remapCoordinateSystem(mRotationM, axisX, axisY,
+			// mRemapedRotationM);
+			//
+			// //Get the azimuth, pitch, roll
+			// SensorManager.getOrientation(mRemapedRotationM, mOrientation);
+			/**
+			 * This block remaps the rotation matrix based on the current device
+			 * orientation As we want to behave the same as the browser this code is
+			 * needed no more, is left here just for informative purposes as it is not
+			 * so well documented in the official docs.
+			 */
+
+			SensorManager.getOrientation(mRotationM, mOrientation);
+
+			// Convert the azimuth to degrees in 0.5 degree resolution.
+			azimuth = (float) Math.round((Math.toDegrees(mOrientation[0])) * 2) / 2;
+			pitch = (float) Math.round((Math.toDegrees(mOrientation[1])) * 2) / 2;
+			roll = (float) Math.round((Math.toDegrees(mOrientation[2])) * 2) / 2;
+
+			// Adjust the range: 0 < range <= 360 (from: -180 < range <= 180).
+			azimuth = (azimuth + 360) % 360; // alternative: mAzimuth = mAzimuth>=0 ?
+																				// mAzimuth : mAzimuth+360;
+
+			updateTimer.update();
+			Time accumTime = updateTimer.getAccumTime();
+			if (accumTime.getTimeInSeconds() >= updateIntervalInSeconds)
+			{
+				updateTimer.reset();
+
+				notifyRotationChanged(-pitch, roll, azimuth);
+			}
+		}
+	};
+}

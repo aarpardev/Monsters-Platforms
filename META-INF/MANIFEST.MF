@@ -1,0 +1,551 @@
+Manifest-Version: 1.0
+Built-By: Generated-by-ADT
+Created-By: Android Gradle 2.2.1
+
+Name: assets/www/media/sfx_exp_short_hard12.ogg
+SHA1-Digest: L19CR03ErSsyItGXWHD9OeTMt4Y=
+
+Name: assets/www/images/skeletonhead-sheet0.png
+SHA1-Digest: +/TCxknRcYaITzmBnCReZu9c2Gs=
+
+Name: assets/www/images/heatray-sheet0.png
+SHA1-Digest: UBjrG3tIjZq3XuCn01lW+mWd7uM=
+
+Name: assets/www/images/colorstagefive.png
+SHA1-Digest: M6YUTCde+DzYg542u4O+tH76SIo=
+
+Name: assets/www/c2runtime.js
+SHA1-Digest: OZLqnx4/btSqCpw384EFdjqBR2M=
+
+Name: assets/www/images/enemyspawner-sheet0.png
+SHA1-Digest: 3z5/+x5wH0G5L3YPyde3+WXTLnU=
+
+Name: assets/www/images/impactstar-sheet1.png
+SHA1-Digest: bOUk88M37SIXmQ9/TasvCBnwcas=
+
+Name: assets/www/images/orbboss-sheet0.png
+SHA1-Digest: s9Y+VuC7w98OiLyE+zn207q+deo=
+
+Name: assets/www/images/solidstop.png
+SHA1-Digest: ULmbtLiF2c1BUEl0AipANMMskQM=
+
+Name: com/ideateca/core/util/RotationManager_old.txt
+SHA1-Digest: HaLni4gf2gJyXImMN0J97mgpvV0=
+
+Name: assets/www/plugins/cocoon-plugin-canvasplus-common/www/cocoon_ca
+ nvasplus.js
+SHA1-Digest: c5Z1h6jN0sG2VyOa7vcZN+pJ1u4=
+
+Name: assets/www/images/continuegame-sheet0.png
+SHA1-Digest: CntNF/DmOV9q9P29HQcIGdv+Lxc=
+
+Name: com/ideateca/core/util/RotationManagerChromium_1.txt
+SHA1-Digest: I7ZqUYbpG3G18KUQGaFt+tXiNQ4=
+
+Name: assets/www/images/end-sheet0.png
+SHA1-Digest: 0TZXfVT8L//6bKo5PXPQ33jOxnE=
+
+Name: assets/www/images/magmabacks.png
+SHA1-Digest: L8nlRUdTAHPRHu2w+gsqIqxyqS4=
+
+Name: assets/www/roboto-black.ttf
+SHA1-Digest: Y3r0gL1lVtZYj2vf8xirybibCO0=
+
+Name: assets/www/jquery-2.1.1.min.js
+SHA1-Digest: EPacG5P7d1CQLinrfBhj7x3gjZ8=
+
+Name: assets/www/images/startgame-sheet0.png
+SHA1-Digest: uOc0GZliiFliTcyiyqTCvaMctzs=
+
+Name: assets/www/cordova-js-src/plugin/android/app.js
+SHA1-Digest: f7p1rHw6kBqunadJYz5vUi7ZElM=
+
+Name: assets/www/media/sewer-trance.ogg
+SHA1-Digest: 6gKMCUmFkYXBcKC7wzkLpXyjWl0=
+
+Name: assets/www/images/zombieone-sheet1.png
+SHA1-Digest: I0H7x411raPaGZYie6WEIdZZAKg=
+
+Name: assets/www/index.html
+SHA1-Digest: GfHU/Gv48j8nN+2BVFUTbD020tU=
+
+Name: assets/www/images/cityforeg.png
+SHA1-Digest: gxZTR9Wk+iHleZeWEuwrP5KKK2I=
+
+Name: assets/www/images/orbspawner-sheet0.png
+SHA1-Digest: FuDVvUcbJEUDo9K8V487cgvuKHM=
+
+Name: assets/www/images/titlelogo-sheet0.png
+SHA1-Digest: m7O5ytT+173DEpxNTnmRMpPg0k0=
+
+Name: assets/www/images/bosstwo-sheet1.png
+SHA1-Digest: RMSsMjnx/TJgr0o7/Lhn/0dBH1I=
+
+Name: assets/www/roboto-blackitalic.ttf
+SHA1-Digest: KRjRfRLevpSZ2F00RIMSWLL9378=
+
+Name: assets/www/images/firespider-sheet1.png
+SHA1-Digest: 38/Lqb/9Tu7PwPBeSm4DUv6IJWs=
+
+Name: assets/www/images/movescrollone-sheet0.png
+SHA1-Digest: MHChEdgBhHMEWeeUkYFd65vbFlo=
+
+Name: assets/www/media/landing2.ogg
+SHA1-Digest: RXyo+sjIZO/rokLC5VL1HQX8uZU=
+
+Name: assets/www/images/boombutt-sheet0.png
+SHA1-Digest: tMGTLJcdVMmM3OciCod/WduPSNY=
+
+Name: assets/www/media/sfx_sounds_damage1.ogg
+SHA1-Digest: 7PfWIUyRgNMIygOWmQVu2TZF4xY=
+
+Name: resources.arsc
+SHA1-Digest: 6n4+oH8PB6Jhz/RxCrwCKYEcEE4=
+
+Name: res/drawable-land-mdpi-v4/screen.png
+SHA1-Digest: /4/wurgxG+u+NONqHr2W3sjFJMA=
+
+Name: assets/www/images/cavethree.png
+SHA1-Digest: X/wcW+DvW4uA5G4qL1xmLlIldgE=
+
+Name: assets/www/images/skeletonone-sheet0.png
+SHA1-Digest: BgTaoLZHyeD+0/0wjqeoqt9YQi0=
+
+Name: assets/www/images/jumpbutt-sheet0.png
+SHA1-Digest: g6K6+8FChni3KpW381Rv5PcOfEM=
+
+Name: assets/www/images/cancollect-sheet0.png
+SHA1-Digest: cA/CbWsKQqP/kHVgyFU63X4Sn04=
+
+Name: assets/www/media/angrywavboss.ogg
+SHA1-Digest: xw5Qye5C9qDWDg1nQ6frpG/1G8U=
+
+Name: assets/www/images/movingcityplat-sheet0.png
+SHA1-Digest: mev0yI8VTbKttVr7OJVuJp2xDJY=
+
+Name: assets/www/images/blackbackdrop.png
+SHA1-Digest: UnNbhlLYculcFKneEw+YvBAi+GQ=
+
+Name: assets/www/loading-logo.png
+SHA1-Digest: 3ZC5mnEOlptQPlz5pQtdw5DmohI=
+
+Name: AndroidManifest.xml
+SHA1-Digest: pm/zdkFOKkpJNJ8HYfqJd3yH6bQ=
+
+Name: assets/www/images/coinscollected.png
+SHA1-Digest: E0J53nYLTIVuLXtVRwNem2W2pXU=
+
+Name: assets/www/images/pausebutt-sheet0.png
+SHA1-Digest: TJvZqeTrDIjLHh6BMNN2QpGqZ/Q=
+
+Name: assets/www/images/coin-sheet0.png
+SHA1-Digest: 2oCbgrNkgKcO+N6V3hamgDgMOFg=
+
+Name: assets/www/media/not-the-upside-down.ogg
+SHA1-Digest: ngRHopspOYJ6mxcXVHeKwU2pf6o=
+
+Name: assets/www/cordova-js-src/android/nativeapiprovider.js
+SHA1-Digest: FVwW8q5pXNyqdiSUoAgfev5NTHs=
+
+Name: assets/www/data.js
+SHA1-Digest: 4Nvp7WjVS/PkFji6/B8ZvG+0Qd0=
+
+Name: assets/www/images/orbwater-sheet0.png
+SHA1-Digest: oGkZ8y20+ahJM6x/QeQXV68JVLk=
+
+Name: res/xml/config.xml
+SHA1-Digest: V+CesAGbO85FjLU1Xnzvw/D8gNI=
+
+Name: assets/www/images/titleman-sheet0.png
+SHA1-Digest: 9btURBxk3nn2eXg/RYHqvA67J2k=
+
+Name: assets/www/images/barrierright-sheet0.png
+SHA1-Digest: B02RNagnML/sxMGiYB6UVg1APVI=
+
+Name: assets/www/images/arrow-sheet0.png
+SHA1-Digest: jt3L6i2oE3xtynLHltMxtfDyCWk=
+
+Name: assets/www/images/backgroundtile.png
+SHA1-Digest: S6n0QJKqMI/PZo9LSPjABbn7/fU=
+
+Name: assets/www/images/water.png
+SHA1-Digest: kb1UPC0k4mda4FNmKWWDoeKrgyo=
+
+Name: assets/www/images/toxicbackfive.png
+SHA1-Digest: XZXLhWNp8KNBdMDgI4OvCy2Kjp8=
+
+Name: assets/www/images/bossone-sheet0.png
+SHA1-Digest: XIJ7/yM69G/w+wQKiFTX+U1Zjug=
+
+Name: assets/www/images/bosstwo-sheet0.png
+SHA1-Digest: BhkH1VHqg4G/8HfAOLeJL+qJxcM=
+
+Name: assets/www/media/sfx_movement_jump1.ogg
+SHA1-Digest: A4Q+FaZIb/HZOryZqG+FnKL0IDM=
+
+Name: assets/www/icon-16.png
+SHA1-Digest: g/AdYz+OBJQhXAMgNamTEzCN4Ek=
+
+Name: assets/www/images/chocolatebar-sheet0.png
+SHA1-Digest: K6+kkGSiRVK7CHVOdfdMgxuoy0Q=
+
+Name: assets/www/images/bomb-sheet0.png
+SHA1-Digest: rO40IJ+uUk2k1QqfhLauinDEkOI=
+
+Name: assets/www/images/leftbutt-sheet0.png
+SHA1-Digest: Z/PZeHdCZuGZpXOePJCi32jSOUc=
+
+Name: assets/www/images/restartbutt-sheet0.png
+SHA1-Digest: NOcF+0Ia4W7Xwk0eUad5/jjEfRE=
+
+Name: assets/www/images/buildinginsideone.png
+SHA1-Digest: lkOYSxGEl5jADUvyz/E2sXw0hik=
+
+Name: assets/www/media/sfx_coin_single3.ogg
+SHA1-Digest: 0bE7RXAHpHu0lbVDaZLo3I/byT4=
+
+Name: assets/www/images/firecrate-sheet0.png
+SHA1-Digest: UCmqf/oQIki4O9DZmlqTYKAgCmo=
+
+Name: assets/www/images/player-sheet0.png
+SHA1-Digest: FaVRzGdDuHxN41VeK3qaEI2IUvY=
+
+Name: assets/www/images/civilian2-sheet0.png
+SHA1-Digest: BqteXA2TaOGO5d5HaWwH0LDZ9Ws=
+
+Name: assets/www/images/cityplattwosideright.png
+SHA1-Digest: t+maFivwTAkf0mZZWqPOxMVIBI4=
+
+Name: res/drawable-land-ldpi-v4/screen.png
+SHA1-Digest: eyOGuxid8LYamWDdNIHiIFRuVKo=
+
+Name: assets/www/icon-114.png
+SHA1-Digest: D2eO8Pvz7jHS6g95b6XL/uoLtnE=
+
+Name: assets/www/images/bossone-sheet2.png
+SHA1-Digest: 5H6tQly7oY3K/UA8MHilowndYLQ=
+
+Name: assets/www/images/can-sheet0.png
+SHA1-Digest: 1A/BQtNgngIW/8DvTQoQBP+TF0E=
+
+Name: assets/www/images/vilecastleone.png
+SHA1-Digest: AMb45hrEHuHJbgQZfFeq7Y+Tqx8=
+
+Name: assets/www/images/jumpthrutile.png
+SHA1-Digest: PZKzZpyZufcL7Z2q7zbj7X8D87g=
+
+Name: assets/www/images/movingsolidtile.png
+SHA1-Digest: 1dp3iDwfSAxpHhCsZXZxEwp83qo=
+
+Name: assets/www/images/iclcle-sheet0.png
+SHA1-Digest: OpbO2nPH5SAGLA2CRChryMKGpKU=
+
+Name: assets/www/media/sfx_sounds_powerup10.ogg
+SHA1-Digest: NUO77CppdUsO26wMDIOUiEBCiaU=
+
+Name: assets/www/images/checkpoint-sheet0.png
+SHA1-Digest: 551C1/PYPDcuhKabP1225Tj3DHg=
+
+Name: assets/www/images/spikestwo.png
+SHA1-Digest: V8bBWXvmO6G2OgmZhIxlQnuNKLM=
+
+Name: assets/www/images/window-sheet0.png
+SHA1-Digest: 1yWKW8khzBP4tbmJcSKKgk7N3gQ=
+
+Name: assets/www/media/sfx_wpn_sword3.ogg
+SHA1-Digest: 7tRNtgvfyPWMC/yYHk78yF6L9eY=
+
+Name: res/drawable-mdpi-v4/icon.png
+SHA1-Digest: dRuJs+QCEJ953ix7o2H/7Ws6p98=
+
+Name: assets/www/images/uihero-sheet0.png
+SHA1-Digest: RvW5vJM+DLlGLs1NWUGLm1QR+Js=
+
+Name: assets/www/cordova-js-src/exec.js
+SHA1-Digest: A7BC4etS9bFIzKKjf8xg4jH3oqM=
+
+Name: res/drawable-port-mdpi-v4/screen.png
+SHA1-Digest: htqsHoxyaE2KC3gX2JmLEYM2HK0=
+
+Name: assets/www/images/skeletonhead-sheet1.png
+SHA1-Digest: UROliCNbl0TA3a/7szxtCCu0ebM=
+
+Name: assets/www/images/cavetwo.png
+SHA1-Digest: SpaHPEKwL2DmAIFX9o4NQ3m3/9o=
+
+Name: assets/www/images/buildingplatforminside.png
+SHA1-Digest: u5CZWCvrAnY1t0kdL2XKQ4fsfgM=
+
+Name: assets/www/images/rightbutt-sheet0.png
+SHA1-Digest: DbVc3Uzx18I92hVKJ70t+jA1Uxc=
+
+Name: assets/www/cordova-js-src/platform.js
+SHA1-Digest: /mJ5H2qTR9Bi2LjUspEVgxlBB+g=
+
+Name: res/drawable-port-ldpi-v4/screen.png
+SHA1-Digest: 3sZBDIEHt1YjLR9kHZmUAL7UAWc=
+
+Name: assets/www/images/tinyskull-sheet0.png
+SHA1-Digest: a0dZ+xhJMX65swUaVcrWMEWS/zk=
+
+Name: assets/www/images/impactstar-sheet2.png
+SHA1-Digest: BgPJfv2Lw4zlr6QvCjrZMqPAxK4=
+
+Name: assets/www/cordova.js
+SHA1-Digest: hbNNrNIl1pN/Fe4gVT17SjLG+Ns=
+
+Name: res/drawable-hdpi-v4/icon.png
+SHA1-Digest: I9AI8WQCD5SermJU7f3GMnofCgo=
+
+Name: lib/armeabi-v7a/libSplashPlugin.so
+SHA1-Digest: IMd4k/cJ87jLlF99yZBdNY8dKg4=
+
+Name: res/mipmap-ldpi-v4/icon.png
+SHA1-Digest: cYtHRIZ4KvhJ8MDEsYBN9dgENT8=
+
+Name: res/drawable-land-xhdpi-v4/screen.png
+SHA1-Digest: R6VMTqu3uaMNfJ5X/0cUwEOTgJU=
+
+Name: res/drawable-mdpi-v4/ic_launcher.png
+SHA1-Digest: 6k/R4N4dl+2lHpJOJCWef7jxlY0=
+
+Name: assets/www/images/deathray-sheet0.png
+SHA1-Digest: 9ddSTPYPYSfWRnetIiTQWUagtaI=
+
+Name: assets/www/media/sfx_sounds_impact7.ogg
+SHA1-Digest: VXiQbqqIv/Esxv7zRBb/BEyWKY4=
+
+Name: assets/www/media/castle-on-the-edge.ogg
+SHA1-Digest: D+zKMMncdLLhUR3lps8Mi0b6nUQ=
+
+Name: assets/www/images/buildingtile.png
+SHA1-Digest: 6YgMbrA9iyC7j57t1AxGfAtlsPM=
+
+Name: assets/www/images/barrierleft-sheet0.png
+SHA1-Digest: KptxdfN7SRm2CaWqMont1Wd2PTA=
+
+Name: assets/www/images/firespider-sheet0.png
+SHA1-Digest: OXJq99o5CRUWS/VHvZh5i8oW+q8=
+
+Name: assets/www/images/zombieone-sheet0.png
+SHA1-Digest: QKuuXd4n5no2JlVe3WimX8yAsOY=
+
+Name: assets/www/media/water.ogg
+SHA1-Digest: vVQDg/AslUEpAUne0cKafP50n/k=
+
+Name: assets/www/images/redbrix.png
+SHA1-Digest: leqPz7DweNgrvofmnLXF+f3u/XE=
+
+Name: assets/www/images/stagesixwindow-sheet0.png
+SHA1-Digest: Og+YGWlHJbb11689PjHQhA7CyV8=
+
+Name: assets/www/images/windowstexture.png
+SHA1-Digest: VGaS89G4nI1DDX3h3X7jjipJuSQ=
+
+Name: com/ideateca/core/util/RotationManagerChromium_2.txt
+SHA1-Digest: rPBLJsqNaS7jDlcvieXpUgOSpJA=
+
+Name: assets/www/plugins/cocoon-plugin-common/www/cocoon.js
+SHA1-Digest: iymTxK870BvDIyTjpGV+LK+Wwyc=
+
+Name: assets/www/media/sfx_sounds_powerup9.ogg
+SHA1-Digest: gUGqgEt8w5ZXequWlXVxI8rg4Rk=
+
+Name: assets/www/images/infectedfish-sheet0.png
+SHA1-Digest: 7Na0uxuHZGdfhwyK48aoHmGJvmM=
+
+Name: assets/www/images/stagethreeend-sheet0.png
+SHA1-Digest: g2ErjvlX8Lnrxxe118mu/ePLdT0=
+
+Name: assets/www/images/solidtile.png
+SHA1-Digest: qNMAJWQK9NHXDEpqITcAeEgLTU8=
+
+Name: assets/www/images/cityplattwosideleft.png
+SHA1-Digest: ZuTqHmuIrINqigxXJvlwMq2ekQk=
+
+Name: res/drawable/icon.png
+SHA1-Digest: OJUgdvTMvtRAV4xBwP9VDzIIxKk=
+
+Name: assets/www/cordova-js-src/android/promptbasednativeapi.js
+SHA1-Digest: WY63KRIwUfBJT7ADJajHaAGlUMA=
+
+Name: assets/www/images/titlezombie-sheet0.png
+SHA1-Digest: 3PcXoACPdVlPMjtAMIMG/etzjdM=
+
+Name: assets/www/media/sfx_sound_neutral9.ogg
+SHA1-Digest: wZzA2AzkX436CuQlflVk+UE7fBc=
+
+Name: assets/www/images/skeletonbosshead-sheet0.png
+SHA1-Digest: Te1Ogw/jgyxnxVklYmykSWv86R4=
+
+Name: assets/www/images/enemjump-sheet0.png
+SHA1-Digest: IUsYBUYKci89XmYOGMjtrK3uYC8=
+
+Name: res/drawable-xhdpi-v4/icon.png
+SHA1-Digest: OJUgdvTMvtRAV4xBwP9VDzIIxKk=
+
+Name: assets/www/images/canbutt-sheet0.png
+SHA1-Digest: GI0Pml3A5CEoJhlhVYfa2Q3hXXw=
+
+Name: res/mipmap-hdpi-v4/icon.png
+SHA1-Digest: I9AI8WQCD5SermJU7f3GMnofCgo=
+
+Name: com/ideateca/core/util/Sound.txt
+SHA1-Digest: f3/1CxH3Yrl5GTB9v+Zatceq4P4=
+
+Name: assets/www/images/caveone.png
+SHA1-Digest: vUDGJXEPgWgPzgm1QFeYRUYLYz0=
+
+Name: assets/www/images/citytwolayerone.png
+SHA1-Digest: Wi5mu7l1eyFd2sD9yTE3WtzDgaw=
+
+Name: res/drawable-xhdpi-v4/ic_launcher.png
+SHA1-Digest: 8CfQznt/eRM+V59eR5e4+6PtHiw=
+
+Name: assets/www/images/impactstar-sheet0.png
+SHA1-Digest: evhYqi9+39I/Uy3lZaxsdOmnbcM=
+
+Name: assets/www/images/spiderpoop-sheet0.png
+SHA1-Digest: qW/aTYh2U1CaypjuIVnPrwE1weY=
+
+Name: assets/www/images/platformstageone.png
+SHA1-Digest: wVWP01D5Z7QrDddneTiGaX/PRPU=
+
+Name: assets/www/images/explode-sheet0.png
+SHA1-Digest: xDayXBOLiXdaKITtt43aYH0Gt38=
+
+Name: assets/www/cordova_plugins.js
+SHA1-Digest: We5fOCO+ZNI2KGgIuRoqk2/u0JY=
+
+Name: com/ideateca/core/util/RotationManagerSensorFusion.txt
+SHA1-Digest: Hb+4aEWRiFB5jaYRT08ROifc7OY=
+
+Name: assets/www/images/movingplat-sheet0.png
+SHA1-Digest: 1kWGGW8HuMft2Srkbgsb8bFAugc=
+
+Name: assets/www/images/hotplatform-sheet0.png
+SHA1-Digest: jWoUrDxSDbh4S9oy0sv71p0MfUw=
+
+Name: assets/www/images/crate-sheet0.png
+SHA1-Digest: yLy5H2i63stRMMTDMZofx7UrTZI=
+
+Name: assets/www/images/windowsback-sheet0.png
+SHA1-Digest: VGaS89G4nI1DDX3h3X7jjipJuSQ=
+
+Name: assets/www/images/icicle-sheet0.png
+SHA1-Digest: FfW37Yex6Y+jc3hwxiVMgge4FuI=
+
+Name: res/drawable-ldpi-v4/icon.png
+SHA1-Digest: cYtHRIZ4KvhJ8MDEsYBN9dgENT8=
+
+Name: assets/www/images/civilian-sheet0.png
+SHA1-Digest: 0pKI7Pj+Xuz5ZrbGMNdPYujcjiU=
+
+Name: assets/www/images/spikes.png
+SHA1-Digest: abwph1StrlkdIl6KWtezxakw0g0=
+
+Name: res/drawable-hdpi-v4/ic_launcher.png
+SHA1-Digest: TI/1qyoma8wMOWpj9VUP4Yy0DIo=
+
+Name: res/drawable-land-hdpi-v4/screen.png
+SHA1-Digest: ow/jAR2z6VL2AqsFSFts+FdUmAg=
+
+Name: assets/www/images/explode-sheet1.png
+SHA1-Digest: 7hEoV/ERqWGMSVCqFgNPNImDcYA=
+
+Name: assets/www/images/burger-sheet0.png
+SHA1-Digest: p3rJyicpFGiDzdhSBjVUK1FXMZc=
+
+Name: assets/www/images/lavaflame-sheet0.png
+SHA1-Digest: IRz271Q4vIWRMfmu/lefZSpytiA=
+
+Name: assets/www/images/vilemoveplatform-sheet0.png
+SHA1-Digest: JQmmfg4NZDgLkckKz0B9XSlz+Bg=
+
+Name: res/drawable-port-hdpi-v4/screen.png
+SHA1-Digest: xwHHkxp1haE7J3h2XCb+NqW959A=
+
+Name: assets/www/images/finalupdown-sheet0.png
+SHA1-Digest: tLVx5R9gsGQpmvUuPPFr2cFp714=
+
+Name: assets/www/media/sfx_deathscream_human5.ogg
+SHA1-Digest: RGntFz53JIGA86UoJ8dApc4BTCA=
+
+Name: assets/www/images/herolife-sheet0.png
+SHA1-Digest: +ov2qabnDCdwdrlGf5lDlw9vxUQ=
+
+Name: assets/www/icon-256.png
+SHA1-Digest: nG11qq/cW/5ZD/wiqEl1Vy0lLAc=
+
+Name: res/mipmap-mdpi-v4/icon.png
+SHA1-Digest: XIjeBoU+4sbtHSMPVoL59BoR0Hw=
+
+Name: assets/www/icon-128.png
+SHA1-Digest: eP6nWwxrFsoDLT/1aBRp5XrIPDo=
+
+Name: res/drawable-xxhdpi-v4/ic_launcher.png
+SHA1-Digest: wiul9rNNPozlmnyM+gsOjT9SGTk=
+
+Name: assets/cocoonjs.cf
+SHA1-Digest: /lvIPzuNgr9znrtKCwoQJc36y+8=
+
+Name: lib/armeabi-v7a/libCanvasPlus.so
+SHA1-Digest: MXOdeaw7kvXbKzOCZAr+OsHI6Uo=
+
+Name: assets/www/images/magicformulaone-sheet0.png
+SHA1-Digest: WOL+92n+XobvX+4YMjkR7bdqNWU=
+
+Name: assets/www/images/evilboss-sheet0.png
+SHA1-Digest: COjBq6cfAeeZXG/6rVGfc+IeX28=
+
+Name: lib/armeabi-v7a/libOpenAL_android.so
+SHA1-Digest: tjS9irX//blf0pfdva/knl2ZlnA=
+
+Name: assets/www/images/cityplattwotown.png
+SHA1-Digest: Bq+mHkcyfPACikRrd/UeEBa5oqI=
+
+Name: assets/www/images/cityone.png
+SHA1-Digest: mgha/eHGH2sQIc9AFQ2luvp5zkc=
+
+Name: assets/www/media/sfx_sounds_powerup2.ogg
+SHA1-Digest: 88fhIoiaWh2cZy7djp+KAo19mmo=
+
+Name: res/mipmap-xhdpi-v4/icon.png
+SHA1-Digest: OJUgdvTMvtRAV4xBwP9VDzIIxKk=
+
+Name: assets/www/media/cantcontemplate.ogg
+SHA1-Digest: BIJH7P1ySUcaDoDRV1NKfE5XShk=
+
+Name: assets/www/media/sfx_sounds_negative1.ogg
+SHA1-Digest: KLw021sT47p6lpmxh2Y3OMDgKpw=
+
+Name: res/drawable-port-xhdpi-v4/screen.png
+SHA1-Digest: n96rO4A41W37pMdlZTrQ+Bbu6yY=
+
+Name: assets/www/media/sfx_sound_neutral6.ogg
+SHA1-Digest: JtNL674BKdUrDQY9D8pv4D38Opw=
+
+Name: assets/www/images/stagetwowindow-sheet0.png
+SHA1-Digest: +xEddPvxn0BPcXx6PhKb2UhgLgM=
+
+Name: assets/www/images/uihero-sheet1.png
+SHA1-Digest: WAHuj8ZTPUA0a3WXz4HEmCscRp0=
+
+Name: assets/www/images/clearsave-sheet0.png
+SHA1-Digest: OYqUiBfQ/f8L1lyg2XyBgF238j4=
+
+Name: assets/www/images/coin-sheet1.png
+SHA1-Digest: +vmlmU9SnP5A7msTaVwVeoEKUjw=
+
+Name: assets/www/icon-32.png
+SHA1-Digest: QJuLI5jrphNcM6Rt2iehleijfrk=
+
+Name: assets/www/images/vilecastleground.png
+SHA1-Digest: +kW7dM7gAB0X4lKCzMvoKc8Pzu0=
+
+Name: classes.dex
+SHA1-Digest: IuQ88qrSqQV84i/BNEYf/ybEAsk=
+
+Name: assets/www/images/bossone-sheet1.png
+SHA1-Digest: PwoJiohgEmLvlb6b/C/qlG4i5o4=
+

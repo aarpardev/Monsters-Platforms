@@ -1,0 +1,894 @@
+package com.ideateca.core.util;
+
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Build;
+
+public class RotationManagerSensorFusion extends ActivityAdapter implements
+		SensorEventListener
+{
+	private SensorManager sensorManager = null;
+
+	// Data for non orientation sensor fusion algorithm
+	// angular speeds from gyro
+	private float[] gyro = new float[3];
+	// rotation matrix from gyro data
+	private float[] gyroMatrix = new float[9];
+	// orientation angles from gyro matrix
+	private float[] gyroOrientation = new float[3];
+	// orientation angles from accel and magnet
+	private float[] accMagOrientation = new float[3];
+	// final orientation angles from sensor fusion
+	private float[] fusedOrientation = new float[3];
+	public static final float EPSILON = 0.000000001f;
+	private static final float NS2S = 1.0f / 1000000000.0f;
+	private long timestamp;
+	private boolean initState = true;
+	public static final int TIME_CONSTANT = 30;
+	public static final float FILTER_COEFFICIENT = 0.98f;
+	private Timer fuseTimer = null;
+
+	// accelerometer vector
+	private float[] accel = null;
+	// magnetic field vector
+	private float[] magnet = null;
+	// accelerometer and magnetometer based rotation matrix
+	private float[] rotationMatrix = new float[9];
+
+	// Data for non sensor fusion non orientation algorithm
+	private float rot[] = new float[3];
+	private float[] orientation = new float[3];
+	static final float ALPHA = 0.25f;
+	
+	private boolean initialized = false;
+	private boolean running = false;
+	private Context context = null;
+	private double updateIntervalInSeconds = 1.0 / 30.0;
+	int numAccelerometerSensors = 0;
+	int numGyroscopeSensors = 0;
+	int numMagenticFieldSensors = 0;
+	int numRotationSensors = 0;
+	int numOrientationSensors = 0;
+	private boolean useOrientation = false;
+	private boolean useSensorFusion = false;
+	private boolean useChromiumAlgorithm = false;
+	private static final boolean ALLOW_THE_USE_OF_MAGNETOMETER = true;
+	private static final String USE_DETECT = null;
+	private static final String USE_SENSOR_FUSION = "SENSOR_FUSION";
+	private static final String USE_CHROMIUM_ALGORITHM = "CHROMIUM_ALGORITHM";
+	private static final String USE_ORIENTATION = "ORIENTATION";
+	private static final String USE = USE_DETECT;
+	private Boolean supported = null;
+	private ArrayList<RotationListener> rotationListeners = new ArrayList<RotationListener>();
+	private com.ideateca.core.util.Timer orientationUpdateTimer = new com.ideateca.core.util.Timer();
+	private float azimuth;
+	private float pitch;
+	private float roll;
+	private boolean activityStoppedListening = false;
+
+
+	private synchronized RotationListener[] toRotationListenerArray()
+	{
+		RotationListener[] array = new RotationListener[rotationListeners.size()];
+		array = rotationListeners.toArray(array);
+		return array;
+	}
+
+//	private void notifyRotationChanged(int newOrientation)
+//	{
+//		RotationListener[] array = toRotationListenerArray();
+//		for (RotationListener listener : array)
+//			listener.rotationChanged(newOrientation);
+//	}
+
+	private void notifyRotationChanged(float pitch, float roll, float azimuth)
+	{
+		RotationListener[] array = toRotationListenerArray();
+		for (RotationListener listener : array)
+			listener.rotationChanged(pitch, roll, azimuth);
+	}
+
+	public synchronized void addRotationListener(RotationListener listener)
+	{
+		if (listener == null)
+			throw new NullPointerException("The given listener cannot be null.");
+
+		if (!rotationListeners.contains(listener))
+			rotationListeners.add(listener);
+	}
+
+	public synchronized void removeRotationListener(RotationListener listener)
+	{
+		rotationListeners.remove(listener);
+	}
+
+	public synchronized void removeAllRotationListeners()
+	{
+		rotationListeners.clear();
+	}
+	
+	@SuppressWarnings("deprecation")
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	public void init(Context context)
+	{
+		if (initialized)
+			throw new IllegalStateException(
+					"Trying to initialize an already initialized " + getClass().getName()
+							+ " instance.");
+		if (context == null)
+			throw new NullPointerException("The given context cannot be null.");
+		this.context = context;
+
+		sensorManager = (SensorManager) context
+				.getSystemService(Context.SENSOR_SERVICE);
+
+		numAccelerometerSensors = sensorManager.getSensorList(
+				Sensor.TYPE_ACCELEROMETER).size();
+		numGyroscopeSensors = sensorManager.getSensorList(
+				Sensor.TYPE_GYROSCOPE).size();
+		numMagenticFieldSensors = sensorManager.getSensorList(
+				Sensor.TYPE_MAGNETIC_FIELD).size();
+		numRotationSensors = sensorManager.getSensorList(
+				Sensor.TYPE_ROTATION_VECTOR).size();
+		numOrientationSensors = sensorManager
+				.getSensorList(Sensor.TYPE_ORIENTATION).size();
+		
+		if (numAccelerometerSensors > 0 && numMagenticFieldSensors > 0 && (USE == USE_DETECT || USE == USE_CHROMIUM_ALGORITHM))
+		{
+			useChromiumAlgorithm = true;
+			useSensorFusion = false;
+			useOrientation = false;
+		}
+		else if ((numAccelerometerSensors > 0 && numGyroscopeSensors > 0 && numMagenticFieldSensors > 0) || (numAccelerometerSensors > 0 && numGyroscopeSensors > 0 && numRotationSensors > 0) && (USE == USE_DETECT || USE == USE_SENSOR_FUSION)) 
+		{
+			useSensorFusion = true;
+			useChromiumAlgorithm = false;
+			useOrientation = false;
+		}
+		else if (numOrientationSensors > 0 && (USE == USE_DETECT || USE == USE_ORIENTATION))
+		{
+			useOrientation = true;
+			useSensorFusion = false;
+			useChromiumAlgorithm = false;
+		}
+		else
+		{
+			System.err
+			.println("There is no way to start any rotation management: not enough sensors found in the system. At least Gyroscope, Accelerometer and Magnetometer or Rotation vector are needed. Otherwise, the old orientation sensor should be present as fallback. None of these were found in the system.");
+		}
+
+		System.out.println("RotationManagerSensorFusion.init: numAccelerometerSensors = " + numAccelerometerSensors + ", numGyroscopeSensors = " + numGyroscopeSensors + ", numMagenticFieldSensors = " + numMagenticFieldSensors + ", numOrientationSensors = " + numOrientationSensors + ", numRotationSensors = " + numRotationSensors + ", useOrientation = " + useOrientation + ", useSensorFusion = " + useSensorFusion + ", useChromiumAlgorithm = " + useChromiumAlgorithm);
+		
+    gyroOrientation[0] = 0.0f;
+    gyroOrientation[1] = 0.0f;
+    gyroOrientation[2] = 0.0f;
+
+    // initialise gyroMatrix with identity matrix
+    gyroMatrix[0] = 1.0f; gyroMatrix[1] = 0.0f; gyroMatrix[2] = 0.0f;
+    gyroMatrix[3] = 0.0f; gyroMatrix[4] = 1.0f; gyroMatrix[5] = 0.0f;
+    gyroMatrix[6] = 0.0f; gyroMatrix[7] = 0.0f; gyroMatrix[8] = 1.0f;
+
+		initialized = true;
+	}
+
+	public void end()
+	{
+		if (!initialized)
+			throw new IllegalStateException("Trying to end a non initialized "
+					+ getClass().getName() + " instance.");
+
+		context = null;
+		initialized = false;
+	}
+
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+		// unregister sensor listeners to prevent the activity from draining the
+		// device's battery.
+		if (initialized && running)
+		{
+			stopListening();
+			activityStoppedListening = true;
+		}
+	}
+
+	@Override
+	public void onPause()
+	{
+		super.onPause();
+		// unregister sensor listeners to prevent the activity from draining the
+		// device's battery.
+		if (initialized && running)
+		{
+			stopListening();
+			activityStoppedListening = true;
+		}
+	}
+
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+		// restore the sensor listeners when user resumes the application.
+		if (initialized && activityStoppedListening)
+		{
+			startListening();
+			activityStoppedListening = false;
+		}
+	}
+
+	public boolean isInitialized()
+	{
+		return initialized;
+	}
+
+	public void setContext(Context context)
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+		if (context == null)
+			throw new NullPointerException("The given context cannot be null.");
+
+		if (this.context instanceof ActivityNotifier)
+		{
+			ActivityNotifier activityNotifier = (ActivityNotifier) this.context;
+			activityNotifier.removeActivityListener(this);
+		}
+		else
+		{
+			System.err
+					.println("The given context is not an instance of ActivityNotifier. Sensors might drain the battery.");
+		}
+
+		this.context = context;
+
+		if (this.context instanceof ActivityNotifier)
+		{
+			ActivityNotifier activityNotifier = (ActivityNotifier) this.context;
+			activityNotifier.addActivityListener(this);
+		}
+		else
+		{
+			System.err
+					.println("The given context is not an instance of ActivityNotifier. Sensors might drain the battery.");
+		}
+	}
+
+	/**
+	 * Returns true if the manager is listening to orientation changes
+	 */
+	public boolean isListening()
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+
+		return running;
+	}
+
+	/**
+	 * Unregisters listeners
+	 */
+	public void stopListening()
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+
+		running = false;
+		try
+		{
+			if (sensorManager != null)
+				sensorManager.unregisterListener(this);
+		}
+		catch (Exception e)
+		{
+		}
+		
+		if (!useOrientation && fuseTimer != null && useSensorFusion)
+		{
+			fuseTimer.cancel();
+			fuseTimer = null;
+//			System.out.println("RotationManagerSensorFusion: stopListening: fuseTimer cancelled!");
+		}
+		
+		System.out.println("RotationManagerSensorFusion: stopListening!");
+	}
+
+	/**
+	 * Returns true if at least one Orientation sensor is available
+	 */
+	public boolean isSupported()
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+
+		if (supported == null)
+		{
+			if (context != null)
+			{
+				supported =	useSensorFusion || useOrientation || useChromiumAlgorithm;
+			}
+		}
+
+		return supported;
+	}
+
+	/**
+	 * Registers a listener and start listening
+	 */
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	@SuppressWarnings("deprecation")
+	public void startListening()
+	{
+		if (!initialized)
+			throw new IllegalStateException(
+					"The instance has not been initialized yet.");
+
+		if (useOrientation)
+		{
+			sensorManager.registerListener(this,
+					sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+					SensorManager.SENSOR_DELAY_GAME);
+		}
+		else if (useSensorFusion)
+		{
+	    sensorManager.registerListener(this,
+	        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+	        SensorManager.SENSOR_DELAY_FASTEST);
+
+	    sensorManager.registerListener(this,
+	        sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
+	        SensorManager.SENSOR_DELAY_FASTEST);
+
+	    // Either there is a magnetic field sensor (the original sensor fusion algorithm), or use the rotation vector sensor.
+	    if (numMagenticFieldSensors > 0 && ALLOW_THE_USE_OF_MAGNETOMETER)
+	    {
+		    sensorManager.registerListener(this,
+		        sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+		        SensorManager.SENSOR_DELAY_FASTEST);
+	    }
+	    else 
+	    {
+				sensorManager.registerListener(this,
+						sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
+						SensorManager.SENSOR_DELAY_FASTEST);
+	    }
+	    
+	    if (fuseTimer != null) {
+	    	fuseTimer.cancel();
+	    	fuseTimer = null;
+	    }
+	    
+	    fuseTimer = new Timer();
+      fuseTimer.scheduleAtFixedRate(new CalculateFusedOrientationTask(),
+          1000, TimeUtils.fromSecondsToMilliseconds(updateIntervalInSeconds));
+		}
+		else if (useChromiumAlgorithm)
+		{
+	    sensorManager.registerListener(this,
+	        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+	        SensorManager.SENSOR_DELAY_FASTEST);
+
+	    sensorManager.registerListener(this,
+	        sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+	        SensorManager.SENSOR_DELAY_FASTEST);
+		}
+		running = true;
+		
+//		System.out.println("RotationManagerSensorFusion: startListening!");
+	}
+
+	public void setUpdateIntervalInSeconds(double updateIntervalInSeconds)
+	{
+		this.updateIntervalInSeconds = updateIntervalInSeconds;
+		if (fuseTimer != null)
+		{
+			fuseTimer.cancel();
+			fuseTimer = null;
+		}
+		if (running)
+		{
+	    fuseTimer = new Timer();
+      fuseTimer.scheduleAtFixedRate(new CalculateFusedOrientationTask(),
+          1000, TimeUtils.fromSecondsToMilliseconds(updateIntervalInSeconds));
+		}
+	}
+
+	public double getUpdateIntervalInSeconds()
+	{
+		return updateIntervalInSeconds;
+	}
+	
+	protected float[] lowPassFilter(float[] input, float[] output)
+	{
+		if (output == null)
+			return input;
+		
+		int size = Math.min(input.length, output.length);
+
+		for (int i = 0; i < size; i++)
+		{
+			output[i] = output[i] + ALPHA * (input[i] - output[i]);
+		}
+
+		return output;
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy)
+	{
+	}
+
+	@SuppressWarnings("deprecation")
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	@Override
+	public void onSensorChanged(SensorEvent event)
+	{
+		float smooth[] = null;
+		int sensorType = event.sensor.getType();
+		switch (sensorType)
+		{
+		case Sensor.TYPE_ACCELEROMETER:
+			if (accel == null) 
+			{
+				accel = new float[3];
+			}
+			System.arraycopy(event.values, 0, accel, 0, 3);
+			calculateAccMagOrientation(sensorType);
+			break;
+
+		case Sensor.TYPE_GYROSCOPE:
+			// process gyro data
+			gyroFunction(event);
+			break;
+
+		case Sensor.TYPE_MAGNETIC_FIELD:
+			if (magnet == null)
+			{
+				magnet = new float[3];
+			}
+			System.arraycopy(event.values, 0, magnet, 0, 3);
+//			calculateAccMagOrientation(sensorType);
+			break;
+			
+		case Sensor.TYPE_ROTATION_VECTOR:
+			smooth = lowPassFilter(event.values, rot);
+			rot[0] = smooth[0];
+			rot[1] = smooth[1];
+			rot[2] = smooth[2];
+			calculateAccMagOrientation(sensorType);
+			break;
+			
+		case Sensor.TYPE_ORIENTATION:
+			azimuth = 360 - event.values[0];
+			pitch = -event.values[1];
+			roll = -event.values[2];
+
+			// Adjust the range: 0 < range <= 360 (from: -180 < range <= 180).
+			// azimuth = (azimuth + 360) % 360; // alternative: mAzimuth =
+			// mAzimuth>=0 ? mAzimuth : mAzimuth+360;
+
+			orientationUpdateTimer.update();
+			Time accumTime = orientationUpdateTimer.getAccumTime();
+			if (accumTime.getTimeInSeconds() >= updateIntervalInSeconds)
+			{
+//				System.out.println("RotationManagerSensorFusion: Orientation: pitch: " + pitch + ", roll: " + roll + ", azimuth: " + azimuth);
+				
+				orientationUpdateTimer.reset();
+				notifyRotationChanged(pitch, roll, azimuth);
+			}
+			break;
+		}
+	}
+	
+  private static float[] computeDeviceOrientationFromRotationMatrix(
+      float[] matrixR, float[] values) {
+  /*
+   * 3x3 (length=9) case:
+   *   /  R[ 0]   R[ 1]   R[ 2]  \
+   *   |  R[ 3]   R[ 4]   R[ 5]  |
+   *   \  R[ 6]   R[ 7]   R[ 8]  /
+   *
+   */
+  if (matrixR.length != 9) return values;
+  if (matrixR[8] > 0) {  // cos(beta) > 0
+      values[0] = (float)Math.atan2(-matrixR[1], matrixR[4]);
+      values[1] = (float)Math.asin(matrixR[7]);                 // beta (-pi/2, pi/2)
+      values[2] = (float)Math.atan2(-matrixR[6], matrixR[8]);   // gamma (-pi/2, pi/2)
+  } else if (matrixR[8] < 0) {  // cos(beta) < 0
+      values[0] = (float)Math.atan2(matrixR[1], -matrixR[4]);
+      values[1] = (float)-Math.asin(matrixR[7]);
+      values[1] += (values[1] >= 0) ? -Math.PI : Math.PI; // beta [-pi,-pi/2) U (pi/2,pi)
+      values[2] = (float)Math.atan2(matrixR[6], -matrixR[8]);    // gamma (-pi/2, pi/2)
+  } else { // R[8] == 0
+      if (matrixR[6] > 0) {  // cos(gamma) == 0, cos(beta) > 0
+          values[0] = (float)Math.atan2(-matrixR[1], matrixR[4]);
+          values[1] = (float)Math.asin(matrixR[7]);       // beta [-pi/2, pi/2]
+          values[2] = (float)-Math.PI / 2;                // gamma = -pi/2
+      } else if (matrixR[6] < 0) { // cos(gamma) == 0, cos(beta) < 0
+          values[0] = (float)Math.atan2(matrixR[1], -matrixR[4]);
+          values[1] = (float)-Math.asin(matrixR[7]);
+          values[1] += (values[1] >= 0) ? -Math.PI : Math.PI; // beta [-pi,-pi/2) U (pi/2,pi)
+          values[2] = (float)-Math.PI / 2;                           // gamma = -pi/2
+      } else { // R[6] == 0, cos(beta) == 0
+          // gimbal lock discontinuity
+          values[0] = (float)Math.atan2(matrixR[3], matrixR[0]);
+          values[1] = (float)((matrixR[7] > 0) ? Math.PI / 2 : -Math.PI / 2);  // beta = +-pi/2
+          values[2] = 0;                                              // gamma = 0
+      }
+  }
+  // alpha is in [-pi, pi], make sure it is in [0, 2*pi).
+  if (values[0] < 0) {
+      values[0] += 2 * Math.PI; // alpha [0, 2*pi)
+  }
+  return values;
+}
+	
+	
+	// calculates orientation angles from accelerometer and magnetometer output
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	private void calculateAccMagOrientation(int sensorType)
+	{
+		boolean getOrientation = false;
+		if (sensorType == Sensor.TYPE_ROTATION_VECTOR)
+		{
+			SensorManager.getRotationMatrixFromVector(rotationMatrix, rot);
+			getOrientation = true;
+		}
+		else
+		{
+			if (accel == null || magnet == null)
+			{
+				return;
+			}
+			getOrientation = SensorManager.getRotationMatrix(rotationMatrix, null, accel, magnet);
+		}
+		if (getOrientation)
+		{
+			if (useChromiumAlgorithm)
+			{
+				computeDeviceOrientationFromRotationMatrix(rotationMatrix, accMagOrientation);
+				accMagOrientation[0] = (float)Math.toDegrees(accMagOrientation[0]);
+				accMagOrientation[1] = (float)Math.toDegrees(accMagOrientation[1]);
+				accMagOrientation[2] = (float)Math.toDegrees(accMagOrientation[2]);
+				
+				// Old way
+//				SensorManager.getOrientation(rotationMatrix, accMagOrientation);
+//				accMagOrientation[0] = (float)Math.toDegrees(-accMagOrientation[0]);
+//				while (accMagOrientation[0] < 0.0)
+//				{
+//					accMagOrientation[0] += 360.0; // [0, 360)
+//				}
+//
+//				accMagOrientation[1] = (float)Math.toDegrees(-accMagOrientation[1]);
+//				while (accMagOrientation[1] < -180.0)
+//				{
+//					accMagOrientation[1] += 360.0; // [-180, 180)
+//				}
+//
+//				accMagOrientation[2] = (float)Math.toDegrees(accMagOrientation[2]);
+//				while (accMagOrientation[2] < -90.0)
+//				{
+//					accMagOrientation[2] += 360.0; // [-90, 90)
+//				}
+				
+				System.out.println("accMagOrientation: " + accMagOrientation[0] + ", " + accMagOrientation[1] + ", " + accMagOrientation[2]);
+				
+				orientationUpdateTimer.update();
+				Time accumTime = orientationUpdateTimer.getAccumTime();
+				if (accumTime.getTimeInSeconds() >= updateIntervalInSeconds)
+				{
+					notifyRotationChanged(accMagOrientation[1], accMagOrientation[2], accMagOrientation[0]);
+					orientationUpdateTimer.reset();
+				}
+			}
+		}
+	}
+	
+	private void chromiumAlgorithm()
+	{
+		double azimuth = Math.toDegrees(-accMagOrientation[0]);
+		while (azimuth < 0.0)
+		{
+			azimuth += 360.0; // [0, 360)
+		}
+
+		double pitch = (float)Math.toDegrees(-accMagOrientation[1]);
+		while (pitch < -180.0)
+		{
+			pitch += 360.0; // [-180, 180)
+		}
+
+		double roll = (float)Math.toDegrees(accMagOrientation[2]);
+		while (roll < -90.0)
+		{
+			roll += 360.0; // [-90, 90)
+		}
+		orientationUpdateTimer.update();
+		Time accumTime = orientationUpdateTimer.getAccumTime();
+		if (accumTime.getTimeInSeconds() >= updateIntervalInSeconds)
+		{
+//			System.out.println("RotationManagerSensorFusion: Orientation: pitch: " + pitch + ", roll: " + roll + ", azimuth: " + azimuth);
+			
+			orientationUpdateTimer.reset();
+			
+			this.pitch = (float)pitch;
+			this.roll = (float)roll;
+			this.azimuth = (float)azimuth;
+			
+			System.out.println(pitch + " vs " + this.pitch + ", " + roll + " vs " + this.roll + ", " + azimuth + " vs " + this.azimuth);
+			
+			notifyRotationChanged(this.pitch, this.roll, this.azimuth);
+		}
+	}
+
+	// This function is borrowed from the Android reference
+	// at
+	// http://developer.android.com/reference/android/hardware/SensorEvent.html#values
+	// It calculates a rotation vector from the gyroscope angular speed values.
+	private void getRotationVectorFromGyro(float[] gyroValues,
+			float[] deltaRotationVector, float timeFactor)
+	{
+		float[] normValues = new float[3];
+
+		// Calculate the angular speed of the sample
+		float omegaMagnitude = (float) Math.sqrt(gyroValues[0] * gyroValues[0]
+				+ gyroValues[1] * gyroValues[1] + gyroValues[2] * gyroValues[2]);
+
+		// Normalize the rotation vector if it's big enough to get the axis
+		if (omegaMagnitude > EPSILON)
+		{
+			normValues[0] = gyroValues[0] / omegaMagnitude;
+			normValues[1] = gyroValues[1] / omegaMagnitude;
+			normValues[2] = gyroValues[2] / omegaMagnitude;
+		}
+
+		// Integrate around this axis with the angular speed by the timestep
+		// in order to get a delta rotation from this sample over the timestep
+		// We will convert this axis-angle representation of the delta rotation
+		// into a quaternion before turning it into the rotation matrix.
+		float thetaOverTwo = omegaMagnitude * timeFactor;
+		float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);
+		float cosThetaOverTwo = (float) Math.cos(thetaOverTwo);
+		deltaRotationVector[0] = sinThetaOverTwo * normValues[0];
+		deltaRotationVector[1] = sinThetaOverTwo * normValues[1];
+		deltaRotationVector[2] = sinThetaOverTwo * normValues[2];
+		deltaRotationVector[3] = cosThetaOverTwo;
+	}
+
+	// This function performs the integration of the gyroscope data.
+	// It writes the gyroscope based orientation into gyroOrientation.
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	public void gyroFunction(SensorEvent event)
+	{
+		// don't start until first accelerometer/magnetometer orientation has been
+		// acquired
+		if (accMagOrientation == null)
+			return;
+
+		// initialisation of the gyroscope based rotation matrix
+		if (initState)
+		{
+			float[] initMatrix = new float[9];
+			initMatrix = getRotationMatrixFromOrientation(accMagOrientation);
+			float[] test = new float[3];
+			SensorManager.getOrientation(initMatrix, test);
+			gyroMatrix = matrixMultiplication(gyroMatrix, initMatrix);
+			initState = false;
+		}
+
+		// copy the new gyro values into the gyro array
+		// convert the raw gyro data into a rotation vector
+		float[] deltaVector = new float[4];
+		if (timestamp != 0)
+		{
+			final float dT = (event.timestamp - timestamp) * NS2S;
+			System.arraycopy(event.values, 0, gyro, 0, 3);
+			getRotationVectorFromGyro(gyro, deltaVector, dT / 2.0f);
+		}
+
+		// measurement done, save current time for next interval
+		timestamp = event.timestamp;
+
+		// convert rotation vector into rotation matrix
+		float[] deltaMatrix = new float[9];
+		SensorManager.getRotationMatrixFromVector(deltaMatrix, deltaVector);
+
+		// apply the new rotation interval on the gyroscope based rotation matrix
+		gyroMatrix = matrixMultiplication(gyroMatrix, deltaMatrix);
+
+		// get the gyroscope based orientation from the rotation matrix
+		SensorManager.getOrientation(gyroMatrix, gyroOrientation);
+	}
+
+	private float[] getRotationMatrixFromOrientation(float[] o)
+	{
+		float[] xM = new float[9];
+		float[] yM = new float[9];
+		float[] zM = new float[9];
+
+		float sinX = (float) Math.sin(o[1]);
+		float cosX = (float) Math.cos(o[1]);
+		float sinY = (float) Math.sin(o[2]);
+		float cosY = (float) Math.cos(o[2]);
+		float sinZ = (float) Math.sin(o[0]);
+		float cosZ = (float) Math.cos(o[0]);
+
+		// rotation about x-axis (pitch)
+		xM[0] = 1.0f;
+		xM[1] = 0.0f;
+		xM[2] = 0.0f;
+		xM[3] = 0.0f;
+		xM[4] = cosX;
+		xM[5] = sinX;
+		xM[6] = 0.0f;
+		xM[7] = -sinX;
+		xM[8] = cosX;
+
+		// rotation about y-axis (roll)
+		yM[0] = cosY;
+		yM[1] = 0.0f;
+		yM[2] = sinY;
+		yM[3] = 0.0f;
+		yM[4] = 1.0f;
+		yM[5] = 0.0f;
+		yM[6] = -sinY;
+		yM[7] = 0.0f;
+		yM[8] = cosY;
+
+		// rotation about z-axis (azimuth)
+		zM[0] = cosZ;
+		zM[1] = sinZ;
+		zM[2] = 0.0f;
+		zM[3] = -sinZ;
+		zM[4] = cosZ;
+		zM[5] = 0.0f;
+		zM[6] = 0.0f;
+		zM[7] = 0.0f;
+		zM[8] = 1.0f;
+
+		// rotation order is y, x, z (roll, pitch, azimuth)
+		float[] resultMatrix = matrixMultiplication(xM, yM);
+		resultMatrix = matrixMultiplication(zM, resultMatrix);
+		return resultMatrix;
+	}
+
+	private float[] matrixMultiplication(float[] A, float[] B)
+	{
+		float[] result = new float[9];
+
+		result[0] = A[0] * B[0] + A[1] * B[3] + A[2] * B[6];
+		result[1] = A[0] * B[1] + A[1] * B[4] + A[2] * B[7];
+		result[2] = A[0] * B[2] + A[1] * B[5] + A[2] * B[8];
+
+		result[3] = A[3] * B[0] + A[4] * B[3] + A[5] * B[6];
+		result[4] = A[3] * B[1] + A[4] * B[4] + A[5] * B[7];
+		result[5] = A[3] * B[2] + A[4] * B[5] + A[5] * B[8];
+
+		result[6] = A[6] * B[0] + A[7] * B[3] + A[8] * B[6];
+		result[7] = A[6] * B[1] + A[7] * B[4] + A[8] * B[7];
+		result[8] = A[6] * B[2] + A[7] * B[5] + A[8] * B[8];
+
+		return result;
+	}
+
+	class CalculateFusedOrientationTask extends TimerTask
+	{
+		public void run()
+		{
+			float oneMinusCoeff = 1.0f - FILTER_COEFFICIENT;
+
+			/*
+			 * Fix for 179� <--> -179� transition problem: Check whether one of the
+			 * two orientation angles (gyro or accMag) is negative while the other one
+			 * is positive. If so, add 360� (2 * math.PI) to the negative value,
+			 * perform the sensor fusion, and remove the 360� from the result if it is
+			 * greater than 180�. This stabilizes the output in
+			 * positive-to-negative-transition cases.
+			 */
+
+			// azimuth
+			if (gyroOrientation[0] < -0.5 * Math.PI && accMagOrientation[0] > 0.0)
+			{
+				fusedOrientation[0] = (float) (FILTER_COEFFICIENT
+						* (gyroOrientation[0] + 2.0 * Math.PI) + oneMinusCoeff
+						* accMagOrientation[0]);
+				fusedOrientation[0] -= (fusedOrientation[0] > Math.PI) ? 2.0 * Math.PI
+						: 0;
+			}
+			else if (accMagOrientation[0] < -0.5 * Math.PI
+					&& gyroOrientation[0] > 0.0)
+			{
+				fusedOrientation[0] = (float) (FILTER_COEFFICIENT * gyroOrientation[0] + oneMinusCoeff
+						* (accMagOrientation[0] + 2.0 * Math.PI));
+				fusedOrientation[0] -= (fusedOrientation[0] > Math.PI) ? 2.0 * Math.PI
+						: 0;
+			}
+			else
+			{
+				fusedOrientation[0] = FILTER_COEFFICIENT * gyroOrientation[0]
+						+ oneMinusCoeff * accMagOrientation[0];
+			}
+
+			// pitch
+			if (gyroOrientation[1] < -0.5 * Math.PI && accMagOrientation[1] > 0.0)
+			{
+				fusedOrientation[1] = (float) (FILTER_COEFFICIENT
+						* (gyroOrientation[1] + 2.0 * Math.PI) + oneMinusCoeff
+						* accMagOrientation[1]);
+				fusedOrientation[1] -= (fusedOrientation[1] > Math.PI) ? 2.0 * Math.PI
+						: 0;
+			}
+			else if (accMagOrientation[1] < -0.5 * Math.PI
+					&& gyroOrientation[1] > 0.0)
+			{
+				fusedOrientation[1] = (float) (FILTER_COEFFICIENT * gyroOrientation[1] + oneMinusCoeff
+						* (accMagOrientation[1] + 2.0 * Math.PI));
+				fusedOrientation[1] -= (fusedOrientation[1] > Math.PI) ? 2.0 * Math.PI
+						: 0;
+			}
+			else
+			{
+				fusedOrientation[1] = FILTER_COEFFICIENT * gyroOrientation[1]
+						+ oneMinusCoeff * accMagOrientation[1];
+			}
+
+			// roll
+			if (gyroOrientation[2] < -0.5 * Math.PI && accMagOrientation[2] > 0.0)
+			{
+				fusedOrientation[2] = (float) (FILTER_COEFFICIENT
+						* (gyroOrientation[2] + 2.0 * Math.PI) + oneMinusCoeff
+						* accMagOrientation[2]);
+				fusedOrientation[2] -= (fusedOrientation[2] > Math.PI) ? 2.0 * Math.PI
+						: 0;
+			}
+			else if (accMagOrientation[2] < -0.5 * Math.PI
+					&& gyroOrientation[2] > 0.0)
+			{
+				fusedOrientation[2] = (float) (FILTER_COEFFICIENT * gyroOrientation[2] + oneMinusCoeff
+						* (accMagOrientation[2] + 2.0 * Math.PI));
+				fusedOrientation[2] -= (fusedOrientation[2] > Math.PI) ? 2.0 * Math.PI
+						: 0;
+			}
+			else
+			{
+				fusedOrientation[2] = FILTER_COEFFICIENT * gyroOrientation[2]
+						+ oneMinusCoeff * accMagOrientation[2];
+			}
+
+			// overwrite gyro matrix and orientation with fused orientation
+			// to comensate gyro drift
+			gyroMatrix = getRotationMatrixFromOrientation(fusedOrientation);
+			System.arraycopy(fusedOrientation, 0, gyroOrientation, 0, 3);
+			
+//			azimuth = (float) Math.round((Math.toDegrees(fusedOrientation[0])) * 2) / 2;
+//			pitch = (float) Math.round((Math.toDegrees(fusedOrientation[1])) * 2) / 2;
+//			roll = (float) Math.round((Math.toDegrees(fusedOrientation[2])) * 2) / 2;
+//			// Adjust the range: 0 < range <= 360 (from: -180 < range <= 180).
+//			azimuth = (azimuth + 360) % 360; // alternative: mAzimuth = mAzimuth>=0 ?
+//																				// mAzimuth : mAzimuth+360;
+//			notifyRotationChanged(pitch, roll, -azimuth);
+			
+			azimuth = -(float)(fusedOrientation[0] * 180/Math.PI);
+			pitch = -(float)(fusedOrientation[1] * 180/Math.PI);
+			roll = (float)(fusedOrientation[2] * 180/Math.PI);
+			notifyRotationChanged(pitch, roll, azimuth);
+
+//			System.out.println("RotationManagerSensorFusion: Sensor Fusion: pitch: " + pitch + ", roll: " + roll + ", azimuth: " + azimuth);
+		}
+	}
+
+}
