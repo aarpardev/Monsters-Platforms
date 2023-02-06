@@ -1,2 +1,2 @@
-# Monsters-Platforms
-A video game that was ported to Android in 2017
+# Monsters & Platforms
+Monsters and Platforms is a platform action video game that was ported from HTML5 to Android in 2017. It unfortunately could no longer be updated and was removed from the Google Play Store as a result. There are plans to move the game from Node.js to Electron builds while rebuilding the game for itch.io with a new soundtrack. I am now releasing the game as an open-source project. The code and media can be modified with my full permission. Please feel free to share your hacks in discussion threads or by sending me a message at aarpar204[at]gmail[dot]com
